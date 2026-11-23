@@ -28,6 +28,8 @@ jobs:
             echo "::error::El secret SSH_KEY no es una llave privada válida. Vuelve a copiarla completa (desde -----BEGIN hasta END-----)."
             exit 1
           fi
+          echo "Huella de la llave (comparar con el servidor):"
+          ssh-keygen -lf ~/.ssh/deploy_key
           ssh-keyscan -p "${{ secrets.SSH_PORT || 22 }}" -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
       - name: Copiar sitio al servidor
