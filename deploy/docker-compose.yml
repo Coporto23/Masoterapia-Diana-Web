@@ -1,0 +1,28 @@
+# Sitio estático masoterapiadiana.cl (en el servidor: /opt/masoterapiadiana).
+# Lo publica el Traefik compartido (/opt/trackapp/traefik) a través de la red "web".
+# Los archivos los sube GitHub Actions a /var/www/masoterapiadiana.cl.
+#   docker compose up -d
+
+services:
+  web:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    volumes:
+      - /var/www/masoterapiadiana.cl:/usr/share/nginx/html:ro
+    networks: [web]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web
+      - traefik.http.routers.masoterapia.entrypoints=websecure
+      - traefik.http.routers.masoterapia.rule=Host(`masoterapiadiana.cl`) || Host(`www.masoterapiadiana.cl`)
+      - traefik.http.routers.masoterapia.tls.certresolver=le
+      - traefik.http.routers.masoterapia.middlewares=masoterapia-www
+      # www.masoterapiadiana.cl -> masoterapiadiana.cl
+      - traefik.http.middlewares.masoterapia-www.redirectregex.regex=^https://www\.masoterapiadiana\.cl/(.*)
+      - traefik.http.middlewares.masoterapia-www.redirectregex.replacement=https://masoterapiadiana.cl/$${1}
+      - traefik.http.middlewares.masoterapia-www.redirectregex.permanent=true
+      - traefik.http.services.masoterapia.loadbalancer.server.port=80
+
+networks:
+  web:
+    external: true
