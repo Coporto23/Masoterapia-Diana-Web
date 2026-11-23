@@ -30,14 +30,19 @@ jobs:
           fi
           echo "Huella de la llave (comparar con el servidor):"
           ssh-keygen -lf ~/.ssh/deploy_key
-          ssh-keyscan -p "${{ secrets.SSH_PORT || 22 }}" -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keyscan -p "${{ secrets.SSH_PORT || 22 }}" -H "$(echo '${{ secrets.SSH_HOST }}' | tr -d '[:space:]')" >> ~/.ssh/known_hosts
 
       - name: Copiar sitio al servidor
+        env:
+          RAW_USER: ${{ secrets.SSH_USER }}
+          RAW_HOST: ${{ secrets.SSH_HOST }}
         run: |
+          SSH_USER="$(echo "$RAW_USER" | tr -d '[:space:]')"
+          SSH_HOST="$(echo "$RAW_HOST" | tr -d '[:space:]')"
           rsync -avz --delete \
             --exclude '.git' \
             --exclude '.github' \
             --exclude 'deploy' \
             --exclude 'README.md' \
             -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT || 22 }}" \
-            ./ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/masoterapiadiana.cl/"
+            ./ "${SSH_USER}@${SSH_HOST}:/var/www/masoterapiadiana.cl/"
