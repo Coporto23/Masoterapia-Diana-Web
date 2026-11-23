@@ -17,10 +17,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configurar llave SSH
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/deploy_key
+          # Quita saltos de línea de Windows / espacios finales y asegura salto final
+          printf '%s\n' "$SSH_KEY" | tr -d '\r' | sed 's/[[:space:]]*$//' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+          if ! ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null; then
+            echo "::error::El secret SSH_KEY no es una llave privada válida. Vuelve a copiarla completa (desde -----BEGIN hasta END-----)."
+            exit 1
+          fi
           ssh-keyscan -p "${{ secrets.SSH_PORT || 22 }}" -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
       - name: Copiar sitio al servidor
