@@ -1045,3 +1045,9 @@ details[open] summary::after {
         grid-template-columns: 1fr;
     }
 }
+
+/* Ícono de WhatsApp: glifo relleno (no de trazo) para que se vea nítido */
+.ico-wsp {
+    fill: currentColor;
+    stroke: none;
+}
